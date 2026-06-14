@@ -23,7 +23,7 @@ jobs:
         id: xcframework
         run: |
           brew install segment-integrations/formulae/swift-create-xcframework
-          swift create-xcframework --zip --platform ios
+          swift create-xcframework --zip --platform ios AltSign-Static
 
       - name: Prepare & zip XCFramework
         id: prepare
