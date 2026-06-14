@@ -1,84 +1,99 @@
 name: Create Release
 
-# Create XCFramework when a version is tagged
+# Build XCFramework and expose the outputs as downloadable GitHub Actions Artifacts.
+# Trigger on version tags (v*) for automation, or run manually from the Actions tab.
 on:
   push:
     tags:
-    - 'v*'
+      - 'v*'
+  workflow_dispatch:
 
 jobs:
-  create_release:
-    name: Create Release
+  build_xcframework:
+    name: Build XCFramework
     runs-on: macos-latest
     steps:
+      - name: Checkout repository and submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-    - name: Checkout repository and submodules
-      uses: actions/checkout@v2
-      with:
-        submodules: recursive
+      - name: Create XCFramework
+        id: xcframework
+        uses: unsignedapps/swift-create-xcframework@v2
 
-    - name: Create XCFramework
-      uses: unsignedapps/swift-create-xcframework@v2
+      - name: Prepare & zip XCFramework
+        id: prepare
+        shell: bash
+        run: |
+          # Prefer outputs from the action; fall back to searching for the .xcframework dir.
+          XC_PATH="${{ steps.xcframework.outputs.xcframework_path }}"
+          XC_NAME="${{ steps.xcframework.outputs.xcframework_name }}"
 
-    # Create a zip file of the XCFramework
-    - name: Create ZIP
-      run: |
-        zip -r ${{ steps.create_xcframework.outputs.xcframework_name }} ${{ steps.create_xcframework.outputs.xcframework_path }}
+          if [ -z "$XC_PATH" ] || [ ! -e "$XC_PATH" ]; then
+            echo "Action outputs missing or invalid, falling back to directory search..."
+            XC_PATH=$(find . -type d -name "*.xcframework" -print -quit || true)
+            XC_NAME=$(basename "$XC_PATH" 2>/dev/null || echo "AltSign")
+          fi
 
-    - name: Create Changelog
-      # Create a changelog
-      uses: unsignedapps/swift-create-changelog@v2
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if [ -z "$XC_PATH" ] || [ ! -e "$XC_PATH" ]; then
+            echo "::error::No .xcframework directory was produced."
+            ls -la .build 2>/dev/null || true
+            exit 1
+          fi
 
-    # Create a release
-    - name: Create Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        body: |
-          Changelog:
-          ${{ steps.changelog.outputs.changelog }}
-        draft: true
-        prerelease: ${{ github.tag_name.contains('beta') }}
+          ZIP_NAME="${XC_NAME}.zip"
+          echo "Zipping $XC_PATH into $ZIP_NAME"
+          ditto -c -k --sequesterRsrc --keepParent "$XC_PATH" "$ZIP_NAME" 2>/dev/null || zip -r -y "$ZIP_NAME" "$XC_PATH"
 
-    # Upload the XCFramework ZIP to the release
-    - name: Upload XCFramework
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.create_zip.outputs.xcframework_path }}
-        asset_name: ${{ steps.create_zip.outputs.xcframework_name }}
-        asset_content_type: application/zip
+          echo "zip_name=$ZIP_NAME" >> "$GITHUB_OUTPUT"
+          echo "zip_path=$ZIP_NAME" >> "$GITHUB_OUTPUT"
 
-    # Upload the changelog to the release
-    - name: Upload Changelog
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ steps.changelog.outputs.changelog_path }}
-        asset_name: Changelog.md
-        asset_content_type: text/markdown
+          # Also produce a small metadata file for convenience
+          echo "XCFramework: $XC_NAME" > build-info.txt
+          echo "Built from: $GITHUB_SHA" >> build-info.txt
+          echo "Ref: $GITHUB_REF" >> build-info.txt
+          echo "build_info_path=build-info.txt" >> "$GITHUB_OUTPUT"
 
-    # Notify Discord
-    - name: Discord Notify
-      uses: stegzilla/discord-notify@v4
-      with:
-        webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }}
-        title: New SideKit release created
-        message: |
-          A new release has been created: ${{ github.ref }}
-          Changelog:
-          ${{ steps.changelog.outputs.changelog }}
-          XCFramework Zip:
-          ${{ steps.create_zip.outputs.xcframework_name }}
-        include_image: true
-        username: GitHub Actions
-        avatar_url: https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png
+      - name: Generate simple changelog (git based)
+        id: changelog
+        shell: bash
+        run: |
+          # Generate a basic changelog between the previous tag and now.
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            git log --pretty=format:"- %s (%h)" "$PREV_TAG"..HEAD > changelog.md || echo "- (no commits)" > changelog.md
+          else
+            git log --pretty=format:"- %s (%h)" -n 50 > changelog.md || echo "- (initial)" > changelog.md
+          fi
+          echo "changelog_path=changelog.md" >> "$GITHUB_OUTPUT"
+
+      # === Primary goal: Artifacts available for direct download from the Actions run page. ===
+      - name: Upload XCFramework (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.prepare.outputs.zip_name }}
+          path: ${{ steps.prepare.outputs.zip_path }}
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload Build Info (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-info
+          path: ${{ steps.prepare.outputs.build_info_path }}
+          retention-days: 1
+
+      - name: Upload Changelog (Artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: changelog
+          path: ${{ steps.changelog.outputs.changelog_path }}
+          retention-days: 1
+
+      # The steps below (GitHub Release creation + asset upload) are intentionally disabled.
+      # They were previously trying to create a release and push assets via the old/deprecated
+      # create-release + upload-release-asset actions. If you want that behaviour back later,
+      # you can re-enable / modernize them (use softprops/action-gh-release etc.).
+      # For now you get clean, direct artifact downloads from the workflow run.
