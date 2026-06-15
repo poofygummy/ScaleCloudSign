@@ -4,6 +4,8 @@
 import Foundation
 import PackageDescription
 
+let srcroot = URL(fileURLWithPath: #file).deletingLastPathComponent().path
+
 let package = Package(
 	name: "AltSign",
 	platforms: [
@@ -159,7 +161,7 @@ let package = Package(
 			],
 			linkerSettings: [
 				.unsafeFlags([
-					"-F$(SRCROOT)/Dependencies",
+					"-F\(srcroot)/Dependencies",
 					"-framework", "OpenSSL"
 				])
 			]
@@ -265,7 +267,7 @@ let package = Package(
 					.linkedFramework("Security"),
 					.linkedLibrary("z"),
 					.unsafeFlags([
-						"-F$(SRCROOT)/Dependencies",
+						"-F\(srcroot)/Dependencies",
 						"-framework", "OpenSSL"
 					])
 				]
