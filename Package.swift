@@ -261,7 +261,7 @@ let package = Package(
 					])
 				],
 				linkerSettings: [
-					.linkedFramework("UIKit", .when(platforms: [.iOS])),
+					.linkedFramework("UIKit"),
 					.linkedFramework("Security"),
 					.linkedLibrary("z"),
 					.unsafeFlags([
