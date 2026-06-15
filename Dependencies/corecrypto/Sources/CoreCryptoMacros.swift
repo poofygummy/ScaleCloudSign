@@ -6,7 +6,7 @@
 //  Copyright © 2020 Riley Testut. All rights reserved.
 //
 
-@_exported import CCoreCrypto
+import CCoreCrypto
 
 /// Reimplementations of various CoreCrypto macros that are unavailable in Swift.
 

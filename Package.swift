@@ -204,7 +204,7 @@ let package = Package(
 
 		.target(
 			name: "AltSign",
-			dependencies: ["CAltSign"],
+			dependencies: ["CAltSign", "CoreCrypto", "CCoreCrypto"],
 			path: "AltSign/Sources",
 			cSettings: [
 				.headerSearchPath("Dependencies/minizip"),
