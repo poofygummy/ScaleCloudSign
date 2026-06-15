@@ -17,6 +17,13 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
+      - name: Cache DerivedData
+        uses: actions/cache@v4
+        with:
+          path: /tmp/DerivedData
+          key: derived-data-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}
+          restore-keys: derived-data-${{ runner.os }}-
+
       - name: List available schemes
         run: |
           xcodebuild -list -package-path .
