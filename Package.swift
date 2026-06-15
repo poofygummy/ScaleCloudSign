@@ -270,7 +270,8 @@ let package = Package(
 				.unsafeFlags([
 					"-IDependencies/minizip"
 				])
-			],
+			]
+		),
 	],
 
 	cLanguageStandard: CLanguageStandard.gnu11,
