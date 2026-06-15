@@ -17,7 +17,7 @@ let package = Package(
 			targets: ["AltSign", "CAltSign", "CoreCrypto", "CCoreCrypto", "ldid", "ldid-core"]
 		),
 		.library(
-			name: "AltSign-Static",
+			name: "AltSignStatic",
 			type: .static,
 			targets: ["AltSign", "CAltSign", "CoreCrypto", "CCoreCrypto", "ldid", "ldid-core"]
 		)
