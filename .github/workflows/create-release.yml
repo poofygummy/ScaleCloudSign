@@ -21,22 +21,13 @@ jobs:
         run: |
           echo 'FRAMEWORK_SEARCH_PATHS = $(inherited) ${{ github.workspace }}/Dependencies' > /tmp/altsign.xcconfig
 
-      - name: Install swift-create-xcframework
-        run: |
-          curl -sL https://github.com/unsignedapps/swift-create-xcframework/releases/download/v2.4.0/swift-create-xcframework.zip -o /tmp/scx.zip
-          unzip -q /tmp/scx.zip -d /usr/local/bin
-          chmod +x /usr/local/bin/swift-create-xcframework
-
       - name: Build XCFramework
-        run: |
-          swift create-xcframework \
-            --zip \
-            --platform ios \
-            --xcodebuild-argument -xcconfig \
-            --xcodebuild-argument /tmp/altsign.xcconfig \
-            AltSign
-        env:
-          FRAMEWORK_SEARCH_PATHS: ${{ github.workspace }}/Dependencies
+        uses: unsignedapps/swift-create-xcframework-action@v1
+        with:
+          platform: ios
+          target: AltSign
+          xcodebuild-arguments: -xcconfig /tmp/altsign.xcconfig
+          zip: true
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
