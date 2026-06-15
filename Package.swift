@@ -149,7 +149,8 @@ let package = Package(
 			name: "CCoreCrypto",
 			path: "Dependencies/corecrypto",
 			exclude: [
-				"Sources/CoreCryptoMacros.swift"
+				"Sources/CoreCryptoMacros.swift",
+				"Sources/ccsrp.m"
 			],
 			cSettings: [
 				.headerSearchPath("include/corecrypto"),
