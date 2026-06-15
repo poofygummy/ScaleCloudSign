@@ -14,7 +14,7 @@ let package = Package(
 		.library(
 			name: "AltSign-Dynamic",
 			type: .dynamic,
-			targets: ["AltSign", "CAltSign", "CoreCrypto", "CCoreCrypto", "ldid", "ldid-core", "OpenSSL"]
+			targets: ["AltSign", "CAltSign", "CoreCrypto", "CCoreCrypto", "ldid", "ldid-core"]
 		),
 		.library(
 			name: "AltSign-Static",
@@ -31,10 +31,10 @@ let package = Package(
 
 	targets: [
 		// exposing OpenSSL as target
-		.binaryTarget(
-			name: "OpenSSL",
-			path: "Dependencies/OpenSSL.xcframework"
-		),
+//		.binaryTarget(
+//			name: "OpenSSL",
+//			path: "Dependencies/OpenSSL.xcframework"
+//		),
 
 		
 		.target(
