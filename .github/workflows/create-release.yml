@@ -24,6 +24,10 @@ jobs:
           key: derived-data-${{ runner.os }}-${{ hashFiles('Package.swift', 'Package.resolved') }}
           restore-keys: derived-data-${{ runner.os }}-
 
+      - name: Remove invalid OpenSSL signature
+        run: |
+          find Dependencies/OpenSSL.xcframework -name '_CodeSignature' -type d -exec rm -rf {} + 2>/dev/null || true
+
       - name: Resolve package and list schemes
         run: |
           xcodebuild -resolvePackageDependencies -clonedSourcePackagesDirPath /tmp/DerivedData/SourcePackages
