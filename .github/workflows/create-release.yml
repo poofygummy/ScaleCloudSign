@@ -17,24 +17,39 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Write xcconfig
+      - name: List available schemes
         run: |
-          echo 'FRAMEWORK_SEARCH_PATHS = $(inherited) ${{ github.workspace }}/Dependencies' > /tmp/altsign.xcconfig
-
-      - name: Install swift-create-xcframework
-        run: |
-          git clone --depth 1 --branch v2.3.0 https://github.com/unsignedapps/swift-create-xcframework /tmp/swift-create-xcframework
-          cd /tmp/swift-create-xcframework
-          swift build -c release
-          cp .build/release/swift-create-xcframework /usr/local/bin/
+          xcodebuild -list -package-path .
 
       - name: Build XCFramework
         run: |
-          swift-create-xcframework \
-            --zip \
-            --platform ios \
-            --xcconfig /tmp/altsign.xcconfig \
-            AltSign
+          set -euo pipefail
+          WS=${{ github.workspace }}
+
+          xcodebuild archive \
+            -scheme AltSign-Dynamic \
+            -destination "generic/platform=iOS" \
+            -archivePath /tmp/AltSign-ios \
+            -derivedDataPath /tmp/DerivedData \
+            SKIP_INSTALL=NO \
+            BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
+            FRAMEWORK_SEARCH_PATHS="$(inherited) $WS/Dependencies"
+
+          xcodebuild archive \
+            -scheme AltSign-Dynamic \
+            -destination "generic/platform=iOS Simulator" \
+            -archivePath /tmp/AltSign-sim \
+            -derivedDataPath /tmp/DerivedData \
+            SKIP_INSTALL=NO \
+            BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
+            FRAMEWORK_SEARCH_PATHS="$(inherited) $WS/Dependencies"
+
+          xcodebuild -create-xcframework \
+            -archive /tmp/AltSign-ios.xcarchive -framework AltSign.framework \
+            -archive /tmp/AltSign-sim.xcarchive -framework AltSign.framework \
+            -output $WS/AltSign.xcframework
+
+          zip -r AltSign.xcframework.zip AltSign.xcframework
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
