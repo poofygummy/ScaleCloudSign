@@ -27,7 +27,7 @@ jobs:
       - name: Resolve package and list schemes
         run: |
           xcodebuild -resolvePackageDependencies -clonedSourcePackagesDirPath /tmp/DerivedData/SourcePackages
-          xcodebuild -list -json
+          xcodebuild -list -json || true
 
       - name: Build XCFramework
         run: |

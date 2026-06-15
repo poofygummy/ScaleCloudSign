@@ -146,6 +146,7 @@ let package = Package(
 			dependencies: [
 				"CoreCrypto",
 				"ldid",
+				"OpenSSL",
 //                 "minizip"
 			],
 			path: "",
