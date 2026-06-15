@@ -27,6 +27,8 @@ jobs:
           unzip -o /tmp/swift-create-xcframework*.zip -d /tmp/scx
           cp /tmp/scx/swift-create-xcframework /usr/local/bin/
           chmod +x /usr/local/bin/swift-create-xcframework
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Build XCFramework
         run: |
