@@ -30,7 +30,7 @@ jobs:
 
       - name: Build XCFramework
         run: |
-          swift create-xcframework --zip --platform ios AltSign-Dynamic
+          swift create-xcframework --zip --platform ios AltSign
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
