@@ -159,7 +159,7 @@ let package = Package(
 			],
 			linkerSettings: [
 				.unsafeFlags([
-					"-FDependencies/OpenSSL.xcframework/ios-arm64",
+					"-FDependencies",
 					"-framework", "OpenSSL"
 				])
 			]
@@ -265,7 +265,7 @@ let package = Package(
 					.linkedFramework("Security"),
 					.linkedLibrary("z"),
 					.unsafeFlags([
-						"-FDependencies/OpenSSL.xcframework/ios-arm64",
+						"-FDependencies",
 						"-framework", "OpenSSL"
 					])
 				]
