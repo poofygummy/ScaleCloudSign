@@ -28,19 +28,9 @@ jobs:
           brew install segment-integrations/formulae/swift-create-xcframework 2>/dev/null || true
           brew link --overwrite segment-integrations/formulae/swift-create-xcframework
 
-      - name: Write xcconfig
-        run: |
-          echo "FRAMEWORK_SEARCH_PATHS = \$(inherited) ${{ github.workspace }}/Dependencies" > /tmp/altsign.xcconfig
-          cat /tmp/altsign.xcconfig
-
       - name: Build XCFramework
         run: |
-          swift create-xcframework \
-            --zip \
-            --platform ios \
-            --xcodebuild-argument -xcconfig \
-            --xcodebuild-argument /tmp/altsign.xcconfig \
-            AltSign-Dynamic
+          swift create-xcframework --zip --platform ios AltSign-Dynamic
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
