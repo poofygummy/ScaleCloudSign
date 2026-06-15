@@ -17,41 +17,26 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Generate Xcode project
-        run: swift package generate-xcodeproj --output /tmp/AltSign.xcodeproj
+      - name: Write xcconfig
+        run: |
+          echo 'FRAMEWORK_SEARCH_PATHS = $(inherited) ${{ github.workspace }}/Dependencies' > /tmp/altsign.xcconfig
+
+      - name: Install swift-create-xcframework
+        run: |
+          curl -sL https://github.com/unsignedapps/swift-create-xcframework/releases/download/v2.4.0/swift-create-xcframework.zip -o /tmp/scx.zip
+          unzip -q /tmp/scx.zip -d /usr/local/bin
+          chmod +x /usr/local/bin/swift-create-xcframework
 
       - name: Build XCFramework
         run: |
-          set -euo pipefail
-
-          # Build archive for iOS device
-          xcodebuild archive \
-            -project /tmp/AltSign.xcodeproj \
-            -scheme AltSign-Dynamic \
-            -destination "generic/platform=iOS" \
-            -archivePath /tmp/AltSign-ios \
-            SKIP_INSTALL=NO \
-            BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
-            FRAMEWORK_SEARCH_PATHS="${{ github.workspace }}/Dependencies"
-
-          # Build archive for iOS Simulator
-          xcodebuild archive \
-            -project /tmp/AltSign.xcodeproj \
-            -scheme AltSign-Dynamic \
-            -destination "generic/platform=iOS Simulator" \
-            -archivePath /tmp/AltSign-ios-sim \
-            SKIP_INSTALL=NO \
-            BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
-            FRAMEWORK_SEARCH_PATHS="${{ github.workspace }}/Dependencies"
-
-          # Create XCFramework
-          xcodebuild -create-xcframework \
-            -archive /tmp/AltSign-ios.xcarchive -framework AltSign.framework \
-            -archive /tmp/AltSign-ios-sim.xcarchive -framework AltSign.framework \
-            -output AltSign.xcframework
-
-          # Zip it
-          zip -r AltSign.xcframework.zip AltSign.xcframework
+          swift create-xcframework \
+            --zip \
+            --platform ios \
+            --xcodebuild-argument -xcconfig \
+            --xcodebuild-argument /tmp/altsign.xcconfig \
+            AltSign
+        env:
+          FRAMEWORK_SEARCH_PATHS: ${{ github.workspace }}/Dependencies
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
