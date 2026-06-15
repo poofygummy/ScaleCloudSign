@@ -1,7 +1,5 @@
 name: Create Release
 
-# Build XCFramework and expose the outputs as downloadable GitHub Actions Artifacts.
-# Trigger on version tags (v*) for automation, or run manually from the Actions tab.
 on:
   push:
     tags:
@@ -30,77 +28,13 @@ jobs:
           brew install segment-integrations/formulae/swift-create-xcframework 2>/dev/null || true
           brew link --overwrite segment-integrations/formulae/swift-create-xcframework
 
-      - name: Prepare & zip XCFramework
-        id: prepare
-        shell: bash
-        run: |
-          # Prefer outputs from the action; fall back to searching for the .xcframework dir.
-          XC_PATH="${{ steps.xcframework.outputs.xcframework_path }}"
-          XC_NAME="${{ steps.xcframework.outputs.xcframework_name }}"
+      - name: Build XCFramework
+        run: swift create-xcframework --zip --platform ios
 
-          if [ -z "$XC_PATH" ] || [ ! -e "$XC_PATH" ]; then
-            echo "Action outputs missing or invalid, falling back to directory search..."
-            XC_PATH=$(find . -type d -name "*.xcframework" -print -quit || true)
-            XC_NAME=$(basename "$XC_PATH" 2>/dev/null || echo "AltSign")
-          fi
-
-          if [ -z "$XC_PATH" ] || [ ! -e "$XC_PATH" ]; then
-            echo "::error::No .xcframework directory was produced."
-            ls -la .build 2>/dev/null || true
-            exit 1
-          fi
-
-          ZIP_NAME="${XC_NAME}.zip"
-          echo "Zipping $XC_PATH into $ZIP_NAME"
-          ditto -c -k --sequesterRsrc --keepParent "$XC_PATH" "$ZIP_NAME" 2>/dev/null || zip -r -y "$ZIP_NAME" "$XC_PATH"
-
-          echo "zip_name=$ZIP_NAME" >> "$GITHUB_OUTPUT"
-          echo "zip_path=$ZIP_NAME" >> "$GITHUB_OUTPUT"
-
-          # Also produce a small metadata file for convenience
-          echo "XCFramework: $XC_NAME" > build-info.txt
-          echo "Built from: $GITHUB_SHA" >> build-info.txt
-          echo "Ref: $GITHUB_REF" >> build-info.txt
-          echo "build_info_path=build-info.txt" >> "$GITHUB_OUTPUT"
-
-      - name: Generate simple changelog (git based)
-        id: changelog
-        shell: bash
-        run: |
-          # Generate a basic changelog between the previous tag and now.
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -n "$PREV_TAG" ]; then
-            git log --pretty=format:"- %s (%h)" "$PREV_TAG"..HEAD > changelog.md || echo "- (no commits)" > changelog.md
-          else
-            git log --pretty=format:"- %s (%h)" -n 50 > changelog.md || echo "- (initial)" > changelog.md
-          fi
-          echo "changelog_path=changelog.md" >> "$GITHUB_OUTPUT"
-
-      # === Primary goal: Artifacts available for direct download from the Actions run page. ===
-      - name: Upload XCFramework (Artifact)
+      - name: Upload XCFramework
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.prepare.outputs.zip_name }}
-          path: ${{ steps.prepare.outputs.zip_path }}
-          retention-days: 1
+          name: AltSign-xcframework
+          path: "*.zip"
+          retention-days: 7
           if-no-files-found: error
-
-      - name: Upload Build Info (Artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-info
-          path: ${{ steps.prepare.outputs.build_info_path }}
-          retention-days: 1
-
-      - name: Upload Changelog (Artifact)
-        uses: actions/upload-artifact@v4
-        with:
-          name: changelog
-          path: ${{ steps.changelog.outputs.changelog_path }}
-          retention-days: 1
-
-      # The steps below (GitHub Release creation + asset upload) are intentionally disabled.
-      # They were previously trying to create a release and push assets via the old/deprecated
-      # create-release + upload-release-asset actions. If you want that behaviour back later,
-      # you can re-enable / modernize them (use softprops/action-gh-release etc.).
-      # For now you get clean, direct artifact downloads from the workflow run.
