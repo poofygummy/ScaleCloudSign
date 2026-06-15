@@ -87,8 +87,13 @@ let package = Package(
 				.headerSearchPath("libplist/include"),
 				.headerSearchPath("libplist/src"),
 				.headerSearchPath("libplist/libcnary/include"),
+				.headerSearchPath("../../Dependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers"),
 			],
 			cxxSettings: [
+				.headerSearchPath("libplist/include"),
+				.headerSearchPath("libplist/src"),
+				.headerSearchPath("libplist/libcnary/include"),
+				.headerSearchPath("../../Dependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers"),
 			]
 		),
 
@@ -108,8 +113,14 @@ let package = Package(
 				.headerSearchPath("../../Dependencies/ldid/libplist/include"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
+				.headerSearchPath("../../Dependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers"),
 			],
 			cxxSettings: [
+				.headerSearchPath("../../Dependencies/ldid"),
+				.headerSearchPath("../../Dependencies/ldid/libplist/include"),
+				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
+				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
+				.headerSearchPath("../../Dependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers"),
 			]
 		),
 
@@ -163,8 +174,8 @@ let package = Package(
 				"Dependencies/minizip/miniunz.c",
 			],
 			publicHeadersPath: "AltSign/include",
-			cSettings: [
-				// Recursive wildcard paths no longer work as of Xcode 16 :(
+						cSettings: [
+				// Recursive wildcard paths no longer work as of Xcode 16 :(  
 				// .headerSearchPath("AltSign/**"),
 				.headerSearchPath("AltSign/include"),
 				.headerSearchPath("AltSign/include/AltSign"),
@@ -172,6 +183,7 @@ let package = Package(
 				.headerSearchPath("Dependencies/ldid"),
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
+				.headerSearchPath("Dependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers"),
 				.define("unix=1"),
 			],
 			cxxSettings: [
@@ -181,6 +193,7 @@ let package = Package(
 				.headerSearchPath("Dependencies/ldid"),
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
+				.headerSearchPath("Dependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers"),
 			 .define("unix=1"),
 			],
 			linkerSettings: [
