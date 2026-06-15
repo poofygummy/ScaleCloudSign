@@ -4,7 +4,6 @@
 import Foundation
 import PackageDescription
 
-
 let package = Package(
 	name: "AltSign",
 	platforms: [
@@ -13,9 +12,14 @@ let package = Package(
 	],
 	products: [
 		.library(
-			name: "AltSign",
+			name: "AltSign-Dynamic",
+			type: .dynamic,
+			targets: ["AltSign", "CAltSign", "CoreCrypto", "CCoreCrypto", "ldid", "ldid-core", "OpenSSL"]
+		),
+		.library(
+			name: "AltSign-Static",
 			type: .static,
-			targets: ["AltSign"]
+			targets: ["AltSign", "CAltSign", "CoreCrypto", "CCoreCrypto", "ldid", "ldid-core"]
 		)
 	],
 
@@ -26,7 +30,11 @@ let package = Package(
 	],
 
 	targets: [
-
+		// exposing OpenSSL as target
+		.binaryTarget(
+			name: "OpenSSL",
+			path: "Dependencies/OpenSSL.xcframework"
+		),
 
 		
 		.target(
@@ -76,38 +84,11 @@ let package = Package(
 			],
 			publicHeadersPath: "",
 			cSettings: [
-				.headerSearchPath("."),
-				.headerSearchPath("libplist"),
 				.headerSearchPath("libplist/include"),
 				.headerSearchPath("libplist/src"),
-				.headerSearchPath("libplist/libcnary"),
 				.headerSearchPath("libplist/libcnary/include"),
-				.unsafeFlags([
-					"-IDependencies/ldid",
-					"-IDependencies/ldid/libplist",
-					"-IDependencies/ldid/libplist/include",
-					"-IDependencies/ldid/libplist/src",
-					"-IDependencies/ldid/libplist/libcnary",
-					"-IDependencies/ldid/libplist/libcnary/include",
-					"-w"
-				])
 			],
 			cxxSettings: [
-				.headerSearchPath("."),
-				.headerSearchPath("libplist"),
-				.headerSearchPath("libplist/include"),
-				.headerSearchPath("libplist/src"),
-				.headerSearchPath("libplist/libcnary"),
-				.headerSearchPath("libplist/libcnary/include"),
-				.unsafeFlags([
-					"-IDependencies/ldid",
-					"-IDependencies/ldid/libplist",
-					"-IDependencies/ldid/libplist/include",
-					"-IDependencies/ldid/libplist/src",
-					"-IDependencies/ldid/libplist/libcnary",
-					"-IDependencies/ldid/libplist/libcnary/include",
-					"-w"
-				])
 			]
 		),
 
@@ -124,44 +105,11 @@ let package = Package(
 			publicHeadersPath: "",
 			cSettings: [
 				.headerSearchPath("../../Dependencies/ldid"),
-				.headerSearchPath("../../Dependencies/ldid/libplist"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/include"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
-				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
-				.unsafeFlags([
-					"-IDependencies/ldid",
-					"-IDependencies/ldid/libplist",
-					"-IDependencies/ldid/libplist/include",
-					"-IDependencies/ldid/libplist/src",
-					"-IDependencies/ldid/libplist/libcnary",
-					"-IDependencies/ldid/libplist/libcnary/include",
-					"-IDependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers",
-					"-w"
-				])
 			],
 			cxxSettings: [
-				.headerSearchPath("../../Dependencies/ldid"),
-				.headerSearchPath("../../Dependencies/ldid/libplist"),
-				.headerSearchPath("../../Dependencies/ldid/libplist/include"),
-				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
-				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary"),
-				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
-				.unsafeFlags([
-					"-IDependencies/ldid",
-					"-IDependencies/ldid/libplist",
-					"-IDependencies/ldid/libplist/include",
-					"-IDependencies/ldid/libplist/src",
-					"-IDependencies/ldid/libplist/libcnary",
-					"-IDependencies/ldid/libplist/libcnary/include",
-					"-IDependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers",
-					"-w"
-				])
-			],
-			linkerSettings: [
-				.unsafeFlags([
-					"-framework", "OpenSSL"
-				])
 			]
 		),
 
@@ -172,14 +120,8 @@ let package = Package(
 				"Sources/CoreCryptoMacros.swift"
 			],
 			cSettings: [
-				.headerSearchPath("include"),
 				.headerSearchPath("include/corecrypto"),
-				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1"),
-				.unsafeFlags([
-					"-IDependencies/corecrypto/include",
-					"-IDependencies/corecrypto/include/corecrypto",
-					"-w"
-				])
+				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1")
 			]
 		),
 
@@ -230,18 +172,8 @@ let package = Package(
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
 				.define("unix=1"),
-				.unsafeFlags([
-					"-IAltSign/include",
-					"-IAltSign/include/AltSign",
-					"-IAltSign/Capabilities",
-					"-IDependencies/ldid",
-					"-IDependencies/ldid/libplist/include",
-										"-IDependencies/minizip",
-						"-IDependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers",
-						"-w"
-					])
-				],
-				cxxSettings: [
+			],
+			cxxSettings: [
 				.headerSearchPath("AltSign/include"),
 				.headerSearchPath("AltSign/include/AltSign"),
 				.headerSearchPath("AltSign/Capabilities"),
@@ -249,25 +181,11 @@ let package = Package(
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
 			 .define("unix=1"),
-				.unsafeFlags([
-					"-IAltSign/include",
-					"-IAltSign/include/AltSign",
-					"-IAltSign/Capabilities",
-					"-IDependencies/ldid",
-					"-IDependencies/ldid/libplist/include",
-										"-IDependencies/minizip",
-						"-IDependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers",
-						"-w"
-					])
-				],
-				linkerSettings: [
-					.linkedFramework("UIKit"),
-					.linkedFramework("Security"),
-					.linkedLibrary("z"),
-					.unsafeFlags([
-						"-framework", "OpenSSL"
-					])
-				]
+			],
+			linkerSettings: [
+				.linkedFramework("UIKit", .when(platforms: [.iOS])),
+				.linkedFramework("Security"),
+			]
 		),
 
 		.target(
@@ -275,11 +193,8 @@ let package = Package(
 			dependencies: ["CAltSign"],
 			path: "AltSign/Sources",
 			cSettings: [
-				.headerSearchPath("../../Dependencies/minizip"),
+				.headerSearchPath("Dependencies/minizip"),
 				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1"),
-				.unsafeFlags([
-					"-IDependencies/minizip"
-				])
 			]
 		),
 	],
