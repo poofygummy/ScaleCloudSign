@@ -28,13 +28,19 @@ jobs:
           brew install segment-integrations/formulae/swift-create-xcframework 2>/dev/null || true
           brew link --overwrite segment-integrations/formulae/swift-create-xcframework
 
+      - name: Debug info (commit + manifest snippet)
+        run: |
+          echo "HEAD=$(git rev-parse HEAD)"
+          echo "=== ldid-core cSettings (as seen by runner) ==="
+          sed -n '/name: "ldid-core"/,/^        )$/p' Package.swift || true
+
       - name: Build XCFramework
-        run: swift create-xcframework --zip --platform ios
+        run: swift create-xcframework --product AltSign --zip --platform ios
 
       - name: Upload XCFramework
         uses: actions/upload-artifact@v4
         with:
           name: AltSign-xcframework
           path: "*.zip"
-          retention-days: 7
+          retention-days: 1
           if-no-files-found: error

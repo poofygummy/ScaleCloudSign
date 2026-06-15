@@ -83,7 +83,8 @@ let package = Package(
 				.headerSearchPath("libplist/src"),
 				.headerSearchPath("libplist/libcnary/include"),
 				.headerSearchPath("libplist/libcnary"),
-				.unsafeFlags(["-w"])
+				.headerSearchPath("libplist"),
+				.unsafeFlags(["-IDependencies/ldid/libplist/libcnary/include", "-IDependencies/ldid/libplist/src", "-w"])
 			],
 			cxxSettings: [
 				.unsafeFlags(["-w"])
@@ -107,6 +108,7 @@ let package = Package(
 				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary"),
+				.unsafeFlags(["-I../../Dependencies/ldid/libplist/libcnary/include", "-w"])
 			],
 			cxxSettings: [
 				.unsafeFlags(["-w"])
