@@ -38,7 +38,6 @@ jobs:
           swift create-xcframework \
             --zip \
             --platform ios \
-            --platform ios-simulator \
             --xcodebuild-argument -xcconfig \
             --xcodebuild-argument /tmp/altsign.xcconfig \
             AltSign-Dynamic
