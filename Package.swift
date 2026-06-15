@@ -14,7 +14,7 @@ let package = Package(
 		.library(
 			name: "AltSign",
 			type: .static,
-			targets: ["AltSign", "CAltSign", "CoreCrypto", "CCoreCrypto", "ldid", "ldid-core"]
+			targets: ["AltSign"]
 		)
 	],
 
@@ -25,11 +25,10 @@ let package = Package(
 	],
 
 	targets: [
-		// exposing OpenSSL as target
-//		.binaryTarget(
-//			name: "OpenSSL",
-//			path: "Dependencies/OpenSSL.xcframework"
-//		),
+		.binaryTarget(
+			name: "OpenSSL",
+			path: "Dependencies/OpenSSL.xcframework"
+		),
 
 		
 		.target(
@@ -116,7 +115,7 @@ let package = Package(
 
 		.target(
 			name: "ldid",
-			dependencies: ["ldid-core"],
+			dependencies: ["ldid-core", "OpenSSL"],
 			path: "AltSign/ldid",
 			exclude: [
 				"alt_ldid.hpp"
