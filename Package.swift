@@ -79,14 +79,21 @@ let package = Package(
 			],
 			publicHeadersPath: "",
 			cSettings: [
+				.headerSearchPath("."),
+				.headerSearchPath("libplist"),
 				.headerSearchPath("libplist/include"),
 				.headerSearchPath("libplist/src"),
-				.headerSearchPath("libplist/libcnary/include"),
 				.headerSearchPath("libplist/libcnary"),
-				.headerSearchPath("libplist"),
-				.unsafeFlags(["-IDependencies/ldid/libplist/libcnary/include", "-IDependencies/ldid/libplist/src", "-w"])
+				.headerSearchPath("libplist/libcnary/include"),
+				.unsafeFlags(["-w"])
 			],
 			cxxSettings: [
+				.headerSearchPath("."),
+				.headerSearchPath("libplist"),
+				.headerSearchPath("libplist/include"),
+				.headerSearchPath("libplist/src"),
+				.headerSearchPath("libplist/libcnary"),
+				.headerSearchPath("libplist/libcnary/include"),
 				.unsafeFlags(["-w"])
 			]
 		),
@@ -104,13 +111,20 @@ let package = Package(
 			publicHeadersPath: "",
 			cSettings: [
 				.headerSearchPath("../../Dependencies/ldid"),
+				.headerSearchPath("../../Dependencies/ldid/libplist"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/include"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
-				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary"),
-				.unsafeFlags(["-I../../Dependencies/ldid/libplist/libcnary/include", "-w"])
+				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
+				.unsafeFlags(["-w"])
 			],
 			cxxSettings: [
+				.headerSearchPath("../../Dependencies/ldid"),
+				.headerSearchPath("../../Dependencies/ldid/libplist"),
+				.headerSearchPath("../../Dependencies/ldid/libplist/include"),
+				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
+				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary"),
+				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
 				.unsafeFlags(["-w"])
 			]
 		),
