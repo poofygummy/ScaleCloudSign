@@ -149,10 +149,10 @@ let package = Package(
 			name: "CCoreCrypto",
 			path: "Dependencies/corecrypto",
 			exclude: [
-				"Sources/CoreCryptoMacros.swift",
-				"Sources/ccsrp.m"
+				"Sources/CoreCryptoMacros.swift"
 			],
 			cSettings: [
+				.headerSearchPath("include"),
 				.headerSearchPath("include/corecrypto"),
 				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1")
 			]
