@@ -25,89 +25,44 @@ jobs:
           path: /opt/homebrew/Cellar/swift-create-xcframework
           key: swift-create-xcframework-2.4.0
 
-      - name: Install swift-create-xcframework via Homebrew
+      - name: Install swift-create-xcframework
         run: |
-          # Use Homebrew directly (this is what you did by hand that got past the Mint clone error)
-          brew install swift-create-xcframework || brew install segment-integrations/formulae/swift-create-xcframework || true
+          if ! command -v swift-create-xcframework &>/dev/null; then
+            brew install segment-integrations/formulae/swift-create-xcframework
+          fi
+          swift create-xcframework --zip --platform ios
 
-          # The error you showed listed the real names the manifest exports:
-          #   AltSign-Dynamic
-          #   AltSignStatic
-          # We must use one of those exactly.
-
-          echo "Trying product 'AltSignStatic' (one of the exact names from the manifest)..."
-          swift-create-xcframework --platform macos --platform ios --platform ios-simulator AltSignStatic || \
-          (echo "AltSignStatic did not work, trying AltSign-Dynamic..." && \
-           swift-create-xcframework --platform macos --platform ios --platform ios-simulator AltSign-Dynamic) || \
-          echo "Tool failed to produce .xcframework. Will still make a zip of build output for you."
-
-      - name: Build + zip using the correct product names + put outputs for the artifact uploads
+      - name: Prepare & zip XCFramework
         id: prepare
         shell: bash
         run: |
-          set -eo pipefail
+          # Prefer outputs from the action; fall back to searching for the .xcframework dir.
+          XC_PATH="${{ steps.xcframework.outputs.xcframework_path }}"
+          XC_NAME="${{ steps.xcframework.outputs.xcframework_name }}"
 
-          # Clean previous runs
-          rm -rf *.xcframework build-info.txt changelog.md Alt*.zip 2>/dev/null || true
-
-          # The tool (installed earlier in the job) showed these as the only valid product names:
-          #   AltSign-Dynamic
-          #   AltSignStatic
-          # We have to use one of those spellings exactly as positional argument after the options.
-          PRODUCT="AltSignStatic"
-
-          echo "=== Calling swift-create-xcframework with product '$PRODUCT' (the name the manifest actually offers) ==="
-
-          # This is the CLI the brew formula provides (not "swift create-xcframework" subcommand).
-          # Common platforms that make sense for this kind of library.
-          if swift-create-xcframework \
-               --platform macos \
-               --platform ios \
-               --platform ios-simulator \
-               "$PRODUCT" ; then
-            echo "Tool succeeded for $PRODUCT"
-          else
-            echo "$PRODUCT did not work, trying the other listed name AltSign-Dynamic..."
-            PRODUCT="AltSign-Dynamic"
-            swift-create-xcframework \
-               --platform macos \
-               --platform ios \
-               --platform ios-simulator \
-               "$PRODUCT" || echo "Tool run finished (check logs for package-level errors inside AltSign)"
+          if [ -z "$XC_PATH" ] || [ ! -e "$XC_PATH" ]; then
+            echo "Action outputs missing or invalid, falling back to directory search..."
+            XC_PATH=$(find . -type d -name "*.xcframework" -print -quit || true)
+            XC_NAME=$(basename "$XC_PATH" 2>/dev/null || echo "AltSign")
           fi
 
-          # The tool normally writes the .xcframework in the current directory.
-          XC_PATH=$(find . -maxdepth 2 -type d -name "*.xcframework" -print -quit 2>/dev/null || true)
-
-          if [ -z "$XC_PATH" ] || [ ! -d "$XC_PATH" ]; then
-            echo "No .xcframework appeared after the tool ran. The package still has problems (ldid target, submodules, etc.)."
-            echo "We will package the .build directory and the info file so there is still something for you to download and inspect."
-            XC_PATH=".build"
+          if [ -z "$XC_PATH" ] || [ ! -e "$XC_PATH" ]; then
+            echo "::error::No .xcframework directory was produced."
+            ls -la .build 2>/dev/null || true
+            exit 1
           fi
-
-          XC_NAME=$(basename "$XC_PATH" | sed 's/\.xcframework$//')
-          [ "$XC_PATH" = ".build" ] && XC_NAME="AltSign-raw-build-artifacts"
 
           ZIP_NAME="${XC_NAME}.zip"
-
-          echo "Creating zip to upload as artifact: $ZIP_NAME"
-          if [ "$XC_PATH" = ".build" ]; then
-            zip -r -y "$ZIP_NAME" .build 2>/dev/null || true
-            echo "product: ${PRODUCT:-none}" > build-info.txt
-            echo "sha: $GITHUB_SHA" >> build-info.txt
-            echo "note: no xcframework was produced by the tool. Raw SwiftPM build folder instead." >> build-info.txt
-            zip -r -y "$ZIP_NAME" build-info.txt 2>/dev/null || true
-          else
-            ditto -c -k --sequesterRsrc --keepParent "$XC_PATH" "$ZIP_NAME" 2>/dev/null || zip -r -y "$ZIP_NAME" "$XC_PATH"
-            echo "product: ${PRODUCT}" > build-info.txt
-            echo "sha: $GITHUB_SHA" >> build-info.txt
-            zip -r -y "$ZIP_NAME" build-info.txt 2>/dev/null || true
-          fi
-
-          ls -lh "$ZIP_NAME" || true
+          echo "Zipping $XC_PATH into $ZIP_NAME"
+          ditto -c -k --sequesterRsrc --keepParent "$XC_PATH" "$ZIP_NAME" 2>/dev/null || zip -r -y "$ZIP_NAME" "$XC_PATH"
 
           echo "zip_name=$ZIP_NAME" >> "$GITHUB_OUTPUT"
           echo "zip_path=$ZIP_NAME" >> "$GITHUB_OUTPUT"
+
+          # Also produce a small metadata file for convenience
+          echo "XCFramework: $XC_NAME" > build-info.txt
+          echo "Built from: $GITHUB_SHA" >> build-info.txt
+          echo "Ref: $GITHUB_REF" >> build-info.txt
           echo "build_info_path=build-info.txt" >> "$GITHUB_OUTPUT"
 
       - name: Generate simple changelog (git based)
