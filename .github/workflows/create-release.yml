@@ -19,10 +19,17 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - name: Create XCFramework
-        id: xcframework
+      - name: Cache swift-create-xcframework
+        uses: actions/cache@v4
+        with:
+          path: /opt/homebrew/Cellar/swift-create-xcframework
+          key: swift-create-xcframework-2.4.0
+
+      - name: Install swift-create-xcframework
         run: |
-          brew install segment-integrations/formulae/swift-create-xcframework
+          if ! command -v swift-create-xcframework &>/dev/null; then
+            brew install segment-integrations/formulae/swift-create-xcframework
+          fi
           swift create-xcframework --zip --platform ios AltSign-Static
 
       - name: Prepare & zip XCFramework
