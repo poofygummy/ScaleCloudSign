@@ -230,11 +230,12 @@ let package = Package(
 					"-IAltSign/Capabilities",
 					"-IDependencies/ldid",
 					"-IDependencies/ldid/libplist/include",
-					"-IDependencies/minizip",
-					"-w"
-				])
-			],
-			cxxSettings: [
+										"-IDependencies/minizip",
+						"-IDependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers",
+						"-w"
+					])
+				],
+				cxxSettings: [
 				.headerSearchPath("AltSign/include"),
 				.headerSearchPath("AltSign/include/AltSign"),
 				.headerSearchPath("AltSign/Capabilities"),
@@ -248,11 +249,12 @@ let package = Package(
 					"-IAltSign/Capabilities",
 					"-IDependencies/ldid",
 					"-IDependencies/ldid/libplist/include",
-					"-IDependencies/minizip",
-					"-w"
-				])
-			],
-			linkerSettings: [
+										"-IDependencies/minizip",
+						"-IDependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers",
+						"-w"
+					])
+				],
+				linkerSettings: [
 				.linkedFramework("UIKit", .when(platforms: [.iOS])),
 				.linkedFramework("Security"),
 			]
