@@ -132,7 +132,15 @@ let package = Package(
 				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
-				.unsafeFlags(["-w"])
+				.unsafeFlags([
+					"-IDependencies/ldid",
+					"-IDependencies/ldid/libplist",
+					"-IDependencies/ldid/libplist/include",
+					"-IDependencies/ldid/libplist/src",
+					"-IDependencies/ldid/libplist/libcnary",
+					"-IDependencies/ldid/libplist/libcnary/include",
+					"-w"
+				])
 			],
 			cxxSettings: [
 				.headerSearchPath("../../Dependencies/ldid"),
@@ -141,7 +149,15 @@ let package = Package(
 				.headerSearchPath("../../Dependencies/ldid/libplist/src"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary"),
 				.headerSearchPath("../../Dependencies/ldid/libplist/libcnary/include"),
-				.unsafeFlags(["-w"])
+				.unsafeFlags([
+					"-IDependencies/ldid",
+					"-IDependencies/ldid/libplist",
+					"-IDependencies/ldid/libplist/include",
+					"-IDependencies/ldid/libplist/src",
+					"-IDependencies/ldid/libplist/libcnary",
+					"-IDependencies/ldid/libplist/libcnary/include",
+					"-w"
+				])
 			]
 		),
 
@@ -154,7 +170,12 @@ let package = Package(
 			cSettings: [
 				.headerSearchPath("include"),
 				.headerSearchPath("include/corecrypto"),
-				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1")
+				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1"),
+				.unsafeFlags([
+					"-IDependencies/corecrypto/include",
+					"-IDependencies/corecrypto/include/corecrypto",
+					"-w"
+				])
 			]
 		),
 
@@ -205,6 +226,15 @@ let package = Package(
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
 				.define("unix=1"),
+				.unsafeFlags([
+					"-IAltSign/include",
+					"-IAltSign/include/AltSign",
+					"-IAltSign/Capabilities",
+					"-IDependencies/ldid",
+					"-IDependencies/ldid/libplist/include",
+					"-IDependencies/minizip",
+					"-w"
+				])
 			],
 			cxxSettings: [
 				.headerSearchPath("AltSign/include"),
@@ -214,6 +244,15 @@ let package = Package(
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
 			 .define("unix=1"),
+				.unsafeFlags([
+					"-IAltSign/include",
+					"-IAltSign/include/AltSign",
+					"-IAltSign/Capabilities",
+					"-IDependencies/ldid",
+					"-IDependencies/ldid/libplist/include",
+					"-IDependencies/minizip",
+					"-w"
+				])
 			],
 			linkerSettings: [
 				.linkedFramework("UIKit", .when(platforms: [.iOS])),
@@ -226,10 +265,12 @@ let package = Package(
 			dependencies: ["CAltSign"],
 			path: "AltSign/Sources",
 			cSettings: [
-				.headerSearchPath("Dependencies/minizip"),
+				.headerSearchPath("../../Dependencies/minizip"),
 				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1"),
-			]
-		),
+				.unsafeFlags([
+					"-IDependencies/minizip"
+				])
+			],
 	],
 
 	cLanguageStandard: CLanguageStandard.gnu11,
