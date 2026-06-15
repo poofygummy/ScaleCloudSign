@@ -35,7 +35,7 @@ jobs:
           sed -n '/name: "ldid-core"/,/^        )$/p' Package.swift || true
 
       - name: Build XCFramework
-        run: swift create-xcframework --product AltSign --zip --platform ios
+        run: swift create-xcframework --zip --platform ios AltSign
 
       - name: Upload XCFramework
         uses: actions/upload-artifact@v4
