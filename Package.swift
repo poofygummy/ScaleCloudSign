@@ -261,9 +261,14 @@ let package = Package(
 					])
 				],
 				linkerSettings: [
-				.linkedFramework("UIKit", .when(platforms: [.iOS])),
-				.linkedFramework("Security"),
-			]
+					.linkedFramework("UIKit", .when(platforms: [.iOS])),
+					.linkedFramework("Security"),
+					.linkedLibrary("z"),
+					.unsafeFlags([
+						"-FDependencies/OpenSSL.xcframework/ios-arm64",
+						"-framework", "OpenSSL"
+					])
+				]
 		),
 
 		.target(
