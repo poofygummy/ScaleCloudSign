@@ -121,12 +121,6 @@ let package = Package(
 				"alt_ldid.cpp"
 			],
 			publicHeadersPath: "",
-			linkerSettings: [
-				.unsafeFlags([
-					"-FDependencies/OpenSSL.xcframework/ios-arm64",
-					"-framework", "OpenSSL"
-				])
-			],
 			cSettings: [
 				.headerSearchPath("../../Dependencies/ldid"),
 				.headerSearchPath("../../Dependencies/ldid/libplist"),
@@ -161,6 +155,12 @@ let package = Package(
 					"-IDependencies/ldid/libplist/libcnary/include",
 					"-IDependencies/OpenSSL.xcframework/ios-arm64/OpenSSL.framework/Headers",
 					"-w"
+				])
+			],
+			linkerSettings: [
+				.unsafeFlags([
+					"-FDependencies/OpenSSL.xcframework/ios-arm64",
+					"-framework", "OpenSSL"
 				])
 			]
 		),
