@@ -49,8 +49,15 @@ jobs:
             FRAMEWORK_SEARCH_PATHS="$WS/Dependencies" \
             OTHER_SWIFT_FLAGS="-no-verify-emitted-module-interface"
 
+          echo "--- Archive contents ---"
+          find /tmp/AltSign-ios.xcarchive/Products -name "*.framework" | head -20
+
+          FW=$(find /tmp/AltSign-ios.xcarchive/Products -name "*.framework" -maxdepth 4 | head -1)
+          FW_NAME=$(basename "$FW")
+          echo "Using framework: $FW_NAME at $FW"
+
           xcodebuild -create-xcframework \
-            -archive /tmp/AltSign-ios.xcarchive -framework AltSign.framework \
+            -archive /tmp/AltSign-ios.xcarchive -framework "$FW_NAME" \
             -output $WS/AltSign.xcframework
 
           zip -r AltSign.xcframework.zip AltSign.xcframework
