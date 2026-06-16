@@ -49,6 +49,8 @@ jobs:
             SKIP_INSTALL=NO \
             BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
             PRODUCT_NAME=AltSign \
+            EXECUTABLE_NAME=AltSign \
+            PRODUCT_MODULE_NAME=AltSign \
             FRAMEWORK_SEARCH_PATHS="$WS/Dependencies" \
             OTHER_SWIFT_FLAGS="-no-verify-emitted-module-interface"
 
