@@ -48,10 +48,11 @@ jobs:
             -clonedSourcePackagesDirPath /tmp/DerivedData/SourcePackages \
             SKIP_INSTALL=NO \
             BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
+            PRODUCT_NAME=AltSign \
             FRAMEWORK_SEARCH_PATHS="$WS/Dependencies" \
             OTHER_SWIFT_FLAGS="-no-verify-emitted-module-interface"
 
-          FW=$(find /tmp/AltSign-ios.xcarchive/Products -name "AltSign-Dynamic.framework" | head -1)
+          FW=$(find /tmp/AltSign-ios.xcarchive/Products -name "AltSign.framework" | head -1)
           echo "Found framework at: $FW"
 
           xcodebuild -create-xcframework \
