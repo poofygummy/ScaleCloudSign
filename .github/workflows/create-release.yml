@@ -46,21 +46,11 @@ jobs:
             -clonedSourcePackagesDirPath /tmp/DerivedData/SourcePackages \
             SKIP_INSTALL=NO \
             BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
-            FRAMEWORK_SEARCH_PATHS="$WS/Dependencies"
-
-          xcodebuild archive \
-            -scheme AltSign-Dynamic \
-            -destination "generic/platform=iOS Simulator" \
-            -archivePath /tmp/AltSign-sim \
-            -derivedDataPath /tmp/DerivedData \
-            -clonedSourcePackagesDirPath /tmp/DerivedData/SourcePackages \
-            SKIP_INSTALL=NO \
-            BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
-            FRAMEWORK_SEARCH_PATHS="$WS/Dependencies"
+            FRAMEWORK_SEARCH_PATHS="$WS/Dependencies" \
+            OTHER_SWIFT_FLAGS="-no-verify-emitted-module-interface"
 
           xcodebuild -create-xcframework \
             -archive /tmp/AltSign-ios.xcarchive -framework AltSign.framework \
-            -archive /tmp/AltSign-sim.xcarchive -framework AltSign.framework \
             -output $WS/AltSign.xcframework
 
           zip -r AltSign.xcframework.zip AltSign.xcframework
