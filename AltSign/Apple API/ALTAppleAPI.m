@@ -14,8 +14,11 @@
 
 #import "ALTModel+Internal.h"
 
-#import <AltSign/NSError+ALTErrors.h>
-#import <AltSign/NSCharacterSet+ASCII.h>
+#import "NSError+ALTErrors.h"
+#import "NSCharacterSet+ASCII.h"
+
+// Import ScaleCloudKit for shared proxy lifecycle
+#import <ScaleCloudKit/ScaleCloudKit-Swift.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -44,7 +47,13 @@ NS_ASSUME_NONNULL_END
     self = [super init];
     if (self)
     {
-        _session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
+        // Configure URLSession with Tailscale proxy (shared with ScaleCloudKit)
+        NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
+        config.connectionProxyDictionary = [SCKSession applyProxySettings];
+        
+        _session = [NSURLSession sessionWithConfiguration:config];
+        [SCKSession registerSession:_session];
+        
         _dateFormatter = [[NSISO8601DateFormatter alloc] init];
 
         _baseURL = [[NSURL URLWithString:[NSString stringWithFormat:@"https://developerservices2.apple.com/services/%@/", ALTProtocolVersion]] copy];
