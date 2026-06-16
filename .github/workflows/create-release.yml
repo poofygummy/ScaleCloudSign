@@ -10,6 +10,8 @@ jobs:
   build_xcframework:
     name: Build XCFramework
     runs-on: macos-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository and submodules
         uses: actions/checkout@v4
@@ -61,9 +63,9 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
+          name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'Latest Build' }}
           files: "*.zip"
           draft: false
-          prerelease: false
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/') }}
           generate_release_notes: true
