@@ -5,21 +5,21 @@ import Foundation
 import PackageDescription
 
 let package = Package(
-	name: "AltSign",
+	name: "ScaleCloudSign",
 	platforms: [
 		.iOS(.v14),
 		.macOS(.v11),
 	],
 	products: [
 				.library(
-				name: "AltSign",
+				name: "ScaleCloudSign",
 				type: .dynamic,
-				targets: ["AltSign", "CAltSign", "CCoreCrypto", "ldid", "ldid-core"]
+				targets: ["ScaleCloudSign", "CScaleCloudSign", "CCoreCrypto", "ldid", "ldid-core"]
 			),
 			.library(
-				name: "AltSign-Static",
+				name: "ScaleCloudSign-Static",
 				type: .static,
-				targets: ["AltSign", "CAltSign", "CCoreCrypto", "ldid", "ldid-core"]
+				targets: ["ScaleCloudSign", "CScaleCloudSign", "CCoreCrypto", "ldid", "ldid-core"]
 			)
 	],
 
@@ -100,7 +100,7 @@ let package = Package(
 		.target(
 			name: "ldid",
 			dependencies: ["ldid-core"],
-			path: "AltSign/ldid",
+			path: "ScaleCloudSign/ldid",
 			exclude: [
 				"alt_ldid.hpp"
 			],
@@ -139,7 +139,7 @@ let package = Package(
 
 		
 		.target(
-			name: "CAltSign",
+			name: "CScaleCloudSign",
 			dependencies: [
 				"CCoreCrypto",
 				"ldid",
@@ -148,10 +148,10 @@ let package = Package(
 			],
 			path: "",
 			exclude: [
-				"AltSign/ldid/alt_ldid.cpp",
-				"AltSign/ldid/alt_ldid.hpp",
-				"AltSign/Sources",
-				"AltSign/include/module.modulemap",
+				"ScaleCloudSign/ldid/alt_ldid.cpp",
+				"ScaleCloudSign/ldid/alt_ldid.hpp",
+				"ScaleCloudSign/Sources",
+				"ScaleCloudSign/include/module.modulemap",
 				"Dependencies/corecrypto",
 				"Dependencies/ldid",
 				"Dependencies/minizip/iowin32.c",
@@ -159,13 +159,13 @@ let package = Package(
 				"Dependencies/minizip/minizip.c",
 				"Dependencies/minizip/miniunz.c",
 			],
-			publicHeadersPath: "AltSign/include",
+			publicHeadersPath: "ScaleCloudSign/include",
 						cSettings: [
 				// Recursive wildcard paths no longer work as of Xcode 16 :(  
-				// .headerSearchPath("AltSign/**"),
-				.headerSearchPath("AltSign/include"),
-				.headerSearchPath("AltSign/include/AltSign"),
-				.headerSearchPath("AltSign/Capabilities"),
+				// .headerSearchPath("ScaleCloudSign/**"),
+				.headerSearchPath("ScaleCloudSign/include"),
+				.headerSearchPath("ScaleCloudSign/include/ScaleCloudSign"),
+				.headerSearchPath("ScaleCloudSign/Capabilities"),
 				.headerSearchPath("Dependencies/ldid"),
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
@@ -173,9 +173,9 @@ let package = Package(
 				.define("unix=1"),
 			],
 			cxxSettings: [
-				.headerSearchPath("AltSign/include"),
-				.headerSearchPath("AltSign/include/AltSign"),
-				.headerSearchPath("AltSign/Capabilities"),
+				.headerSearchPath("ScaleCloudSign/include"),
+				.headerSearchPath("ScaleCloudSign/include/ScaleCloudSign"),
+				.headerSearchPath("ScaleCloudSign/Capabilities"),
 				.headerSearchPath("Dependencies/ldid"),
 				.headerSearchPath("Dependencies/ldid/libplist/include"),
 				.headerSearchPath("Dependencies/minizip"),
@@ -189,9 +189,9 @@ let package = Package(
 		),
 
 		.target(
-			name: "AltSign",
-			dependencies: ["CAltSign", "CCoreCrypto"],
-			path: "AltSign/Sources",
+			name: "ScaleCloudSign",
+			dependencies: ["CScaleCloudSign", "CCoreCrypto"],
+			path: "ScaleCloudSign/Sources",
 			cSettings: [
 				.headerSearchPath("Dependencies/minizip"),
 				.define("CORECRYPTO_DONOT_USE_TRANSPARENT_UNION=1"),

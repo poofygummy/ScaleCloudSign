@@ -1,5 +1,5 @@
 # ---- About ----
-module: AltSign
+module: ScaleCloudSign
 module_version: 1.0.0
 author: SideStore Team
 readme: README.md

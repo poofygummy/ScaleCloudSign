@@ -1,6 +1,6 @@
 //
 //  ccsrp.c
-//  AltSign
+//  ScaleCloudSign
 //
 //  Created by Riley Testut on 6/25/20.
 //  Copyright © 2020 Riley Testut. All rights reserved.

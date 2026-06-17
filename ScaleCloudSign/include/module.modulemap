@@ -1,0 +1,11 @@
+module CScaleCloudSign {
+    umbrella header "ScaleCloudSign.h"
+    export *
+    
+    explicit module Private {
+        header "ScaleCloudSign/ALTAppleAPI_Private.h"
+        header "ScaleCloudSign/ALTModel+Internal.h"
+        header "ScaleCloudSign/ALTCertificateRequest.h"
+        export *
+    }
+}

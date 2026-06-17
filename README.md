@@ -1,4 +1,4 @@
-# AltSign
+# ScaleCloudSign
 
 Swift package for SideStore library
 

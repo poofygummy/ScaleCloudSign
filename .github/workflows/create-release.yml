@@ -50,7 +50,7 @@ jobs:
           mkdir -p prebuilt
 
           xcodebuild build \
-            -scheme AltSign \
+            -scheme ScaleCloudSign \
             -destination 'generic/platform=iOS' \
             -derivedDataPath /tmp/DerivedData \
             -clonedSourcePackagesDirPath /tmp/DerivedData/SourcePackages \
@@ -58,9 +58,9 @@ jobs:
             FRAMEWORK_SEARCH_PATHS="$WS/Dependencies $WS/scalecloud-ios/ScaleCloudKit/prebuilt" \
             OTHER_SWIFT_FLAGS="-no-verify-emitted-module-interface"
 
-          FW=$(find /tmp/DerivedData/Build/Products -type d -name "AltSign.framework" | head -1)
+          FW=$(find /tmp/DerivedData/Build/Products -type d -name "ScaleCloudSign.framework" | head -1)
           if [ -z "$FW" ]; then
-            echo "ERROR: AltSign.framework not found in build products"
+            echo "ERROR: ScaleCloudSign.framework not found in build products"
             find /tmp/DerivedData/Build/Products -name "*.framework" -o -name "*.a"
             exit 1
           fi
@@ -68,32 +68,32 @@ jobs:
           cp -R "$FW" prebuilt/
 
           # Assemble Modules/ from DerivedData — SPM doesn't put them inside the .framework
-          mkdir -p prebuilt/AltSign.framework/Modules/AltSign.swiftmodule
-          find /tmp/DerivedData/Build/Intermediates.noindex -name "AltSign.swiftmodule" -type d | head -1 | xargs -I{} cp -R {}/ prebuilt/AltSign.framework/Modules/AltSign.swiftmodule/ 2>/dev/null || true
-          find /tmp/DerivedData/Build/Products -name "*.swiftmodule" -o -name "*.swiftdoc" -o -name "*.swiftinterface" -o -name "*.abi.json" | grep AltSign | while read f; do
-            cp "$f" prebuilt/AltSign.framework/Modules/AltSign.swiftmodule/ 2>/dev/null || true
+          mkdir -p prebuilt/ScaleCloudSign.framework/Modules/ScaleCloudSign.swiftmodule
+          find /tmp/DerivedData/Build/Intermediates.noindex -name "ScaleCloudSign.swiftmodule" -type d | head -1 | xargs -I{} cp -R {}/ prebuilt/ScaleCloudSign.framework/Modules/ScaleCloudSign.swiftmodule/ 2>/dev/null || true
+          find /tmp/DerivedData/Build/Products -name "*.swiftmodule" -o -name "*.swiftdoc" -o -name "*.swiftinterface" -o -name "*.abi.json" | grep ScaleCloudSign | while read f; do
+            cp "$f" prebuilt/ScaleCloudSign.framework/Modules/ScaleCloudSign.swiftmodule/ 2>/dev/null || true
           done
 
           # Copy public headers from source tree into Headers/
-          mkdir -p prebuilt/AltSign.framework/Headers
-          cp AltSign/include/AltSign.h prebuilt/AltSign.framework/Headers/
-          cp AltSign/include/AltSign/*.h prebuilt/AltSign.framework/Headers/
+          mkdir -p prebuilt/ScaleCloudSign.framework/Headers
+          cp ScaleCloudSign/include/ScaleCloudSign.h prebuilt/ScaleCloudSign.framework/Headers/
+          cp ScaleCloudSign/include/ScaleCloudSign/*.h prebuilt/ScaleCloudSign.framework/Headers/
 
           # Write module.modulemap
-          cat > prebuilt/AltSign.framework/Modules/module.modulemap << 'MODULEMAP'
-          framework module AltSign {
-            umbrella header "AltSign.h"
+          cat > prebuilt/ScaleCloudSign.framework/Modules/module.modulemap << 'MODULEMAP'
+          framework module ScaleCloudSign {
+            umbrella header "ScaleCloudSign.h"
             export *
             module * { export * }
           }
           MODULEMAP
 
           echo "=== Final framework contents ==="
-          find prebuilt/AltSign.framework -type f | sort
+          find prebuilt/ScaleCloudSign.framework -type f | sort
 
       - name: Upload prebuilt
         uses: actions/upload-artifact@v4
         with:
-          name: AltSign-prebuilt
+          name: ScaleCloudSign-prebuilt
           path: prebuilt/
           retention-days: 7
