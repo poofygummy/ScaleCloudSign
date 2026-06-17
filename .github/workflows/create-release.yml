@@ -74,6 +74,11 @@ jobs:
             cp "$f" prebuilt/AltSign.framework/Modules/AltSign.swiftmodule/ 2>/dev/null || true
           done
 
+          # Copy public headers from source tree into Headers/
+          mkdir -p prebuilt/AltSign.framework/Headers
+          cp AltSign/include/AltSign.h prebuilt/AltSign.framework/Headers/
+          cp AltSign/include/AltSign/*.h prebuilt/AltSign.framework/Headers/
+
           # Write module.modulemap
           cat > prebuilt/AltSign.framework/Modules/module.modulemap << 'MODULEMAP'
           framework module AltSign {
