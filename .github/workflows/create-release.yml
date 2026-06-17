@@ -49,21 +49,19 @@ jobs:
           WS=${{ github.workspace }}
           mkdir -p prebuilt
 
-          xcodebuild archive \
+          xcodebuild build \
             -scheme AltSign \
-            -destination "generic/platform=iOS" \
-            -archivePath /tmp/AltSign-ios \
+            -destination 'generic/platform=iOS' \
             -derivedDataPath /tmp/DerivedData \
             -clonedSourcePackagesDirPath /tmp/DerivedData/SourcePackages \
-            SKIP_INSTALL=NO \
             BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
             FRAMEWORK_SEARCH_PATHS="$WS/Dependencies $WS/scalecloud-ios/ScaleCloudKit/prebuilt" \
             OTHER_SWIFT_FLAGS="-no-verify-emitted-module-interface"
 
-          FW=$(find /tmp/AltSign-ios.xcarchive/Products -name "AltSign.framework" | head -1)
+          FW=$(find /tmp/DerivedData/Build/Products -type d -name "AltSign.framework" | head -1)
           if [ -z "$FW" ]; then
-            echo "ERROR: AltSign.framework not found in archive products"
-            find /tmp/AltSign-ios.xcarchive -name "*.framework" -o -name "*.a"
+            echo "ERROR: AltSign.framework not found in build products"
+            find /tmp/DerivedData/Build/Products -name "*.framework" -o -name "*.a"
             exit 1
           fi
           echo "Found framework at: $FW"
