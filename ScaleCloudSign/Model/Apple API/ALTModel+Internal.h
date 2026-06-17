@@ -6,14 +6,14 @@
 //  Copyright © 2019 Riley Testut. All rights reserved.
 //
 
-#import <ScaleCloudSignoudSign/ALTAccount.h>
-#import <ScaleCloudSignoudSign/ALTTeam.h>
-#import <ScaleCloudSignoudSign/ALTDevice.h>
-#import <ScaleCloudSignoudSign/ALTCertificate.h>
-#import <ScaleCloudSignoudSign/ALTCertificateRequest.h>
-#import <ScaleCloudSignoudSign/ALTAppID.h>
-#import <ScaleCloudSignoudSign/ALTAppGroup.h>
-#import <ScaleCloudSignoudSign/ALTProvisioningProfile.h>
+#import <ScaleCloudSign/ALTAccount.h>
+#import <ScaleCloudSign/ALTTeam.h>
+#import <ScaleCloudSign/ALTDevice.h>
+#import <ScaleCloudSign/ALTCertificate.h>
+#import <ScaleCloudSign/ALTCertificateRequest.h>
+#import <ScaleCloudSign/ALTAppID.h>
+#import <ScaleCloudSign/ALTAppGroup.h>
+#import <ScaleCloudSign/ALTProvisioningProfile.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

@@ -6,7 +6,7 @@
 //  Copyright © 2019 Riley Testut. All rights reserved.
 //
 
-#import <ScaleCloudSignoudSign/ALTAppleAPI.h>
+#import <ScaleCloudSign/ALTAppleAPI.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

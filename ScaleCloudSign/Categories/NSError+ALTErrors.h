@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-extern NSErrorDomain const ScaleCloudSignoudSignErrorDomain;
+extern NSErrorDomain const ScaleCloudSignErrorDomain;
 extern NSErrorDomain const ALTAppleAPIErrorDomain;
 extern NSErrorDomain const ALTUnderlyingAppleAPIErrorDomain;
 
