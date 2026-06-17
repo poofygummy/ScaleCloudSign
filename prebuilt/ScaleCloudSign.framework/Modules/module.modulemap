@@ -1,0 +1,5 @@
+framework module ScaleCloudSign {
+  umbrella header "ScaleCloudSign.h"
+  export *
+  module * { export * }
+}
