@@ -38,7 +38,8 @@ ScaleCloudSign/
 ├── prebuilt/
 │   └── ScaleCloudSign.framework/   # Last known-good prebuilt binary (arm64 iOS)
 └── .github/workflows/
-    └── create-release.yml          # GitHub Actions workflow that builds the prebuilt
+    ├── create-release.yml          # Deprecated submodule-internal build workflow (superseded)
+    └── build.yml / rebase.yml / swiftlint.yml / test.yml  # Unchanged from upstream
 ```
 
 ### SPM Targets
@@ -57,6 +58,19 @@ The single framework **product** is named `ScaleCloudSign` (dynamic); a `ScaleCl
 ## Complete Diff vs SideStore Reference
 
 Reference path: `/home/cvt/sidestore/Dependencies/AltSign/AltSign/`
+
+### `.jazzy.yaml`
+
+The `module:` field was updated:
+```yaml
+# reference
+module: AltSign
+# ours
+module: ScaleCloudSign
+```
+This controls the module name in the generated Jazzy documentation. No other content changed.
+
+---
 
 ### Category 1 — Cosmetic Rename Only (file comment line 3)
 
@@ -339,21 +353,37 @@ Moved from `Dependencies/corecrypto/Sources/CoreCryptoMacros.swift` (reference l
 
 ---
 
-## Build Workflow (`create-release.yml`)
+## Build Workflow
 
-Trigger: push to a `v*` tag, or `workflow_dispatch`.
+### Active: `testbuildSCSign.yml` (main repo, `.github/workflows/`)
+
+This is the workflow actually used to build ScaleCloudSign. It lives in the **main `scalecloud-ios` repo**, not in the submodule. Trigger: `workflow_dispatch` only.
+
+Key difference from the deprecated submodule workflow: it runs from the main repo checkout, so `ScaleCloudKit` is available as a sibling submodule rather than requiring a separate sparse checkout of the main repo.
 
 Steps:
-1. **Checkout** ScaleCloudSign with `submodules: recursive` (pulls `ldid` nested submodule).
-2. **Checkout** `poofygummy/scalecloud-ios` (sparse, `ScaleCloudKit/prebuilt` only) — needed so `FRAMEWORK_SEARCH_PATHS` can find `ScaleCloudKit.framework` for the `#import <ScaleCloudKit/ScaleCloudKit-Swift.h>` in `ALTAppleAPI.m`.
-3. **Strip invalid OpenSSL code signatures**: `find Dependencies/OpenSSL.xcframework -name '_CodeSignature' -type d -exec rm -rf {} +` — the bundled OpenSSL xcframework has a signature that Xcode rejects; stripping it lets the build proceed.
-4. **`xcodebuild build`** with `BUILD_LIBRARY_FOR_DISTRIBUTION=YES`, `-no-verify-emitted-module-interface`, and `FRAMEWORK_SEARCH_PATHS` pointing to `Dependencies/` and `ScaleCloudKit/prebuilt`.
-5. **Manually assemble `Modules/`** — SPM does not embed `.swiftmodule` files inside the built `.framework`; they are found in `DerivedData/Build/Intermediates.noindex` and copied in.
-6. **Copy public headers** from `ScaleCloudSign/include/ScaleCloudSign/*.h` into `prebuilt/ScaleCloudSign.framework/Headers/`.
-7. **Write `module.modulemap`** manually into `Modules/`.
-8. **Upload** as a GitHub Actions artifact (name `ScaleCloudSign-prebuilt`, 7-day retention). Not a GitHub Release.
+1. **Checkout** main repo (no submodules yet).
+2. **Init ScaleCloudSign submodule recursively** (`git submodule update --init --recursive -- ScaleCloudSign`) — pulls `ldid` nested submodule.
+3. **Init ScaleCloudKit submodule** (`git submodule update --init -- ScaleCloudKit`) — needed for `ScaleCloudKit.framework`.
+4. **Check** `ScaleCloudKit/prebuilt/` exists — if not, fails with instructions to run `testbuildSCKit` first.
+5. **Strip invalid OpenSSL code signatures**: `find ScaleCloudSign/Dependencies/OpenSSL.xcframework -name '_CodeSignature' -type d -exec rm -rf {} +`
+6. **`xcodebuild build`** (working directory: `ScaleCloudSign/`) with `BUILD_LIBRARY_FOR_DISTRIBUTION=YES`, `-no-verify-emitted-module-interface`, `-sdk iphoneos`, and `FRAMEWORK_SEARCH_PATHS` pointing to `$WS/ScaleCloudSign/Dependencies` and `$WS/ScaleCloudKit/prebuilt`.
+7. **Manually assemble `Modules/`** — same as deprecated workflow: copy `.swiftmodule` directory from `DerivedData/Intermediates.noindex` into `prebuilt/ScaleCloudSign.framework/Modules/`.
+8. **Copy public headers** from `ScaleCloudSign/include/ScaleCloudSign/*.h` into `prebuilt/ScaleCloudSign.framework/Headers/`.
+9. **Write `module.modulemap`** manually.
+10. **Upload** artifact from `ScaleCloudSign/prebuilt/` (name `ScaleCloudSign-prebuilt`, 7-day retention).
 
-**If building locally**, steps 3 and 4–7 must be done manually. The `ScaleCloudKit.framework` must be available at `../ScaleCloudKit/prebuilt/` (sibling checkout) or the framework search path must be overridden.
+### Deprecated: `create-release.yml` (submodule-internal)
+
+This workflow lives inside the ScaleCloudSign submodule itself and was the original build mechanism. It is functionally equivalent to `testbuildSCSign.yml` but:
+- Triggered by `v*` tag push **or** `workflow_dispatch`
+- Fetches `ScaleCloudKit/prebuilt` via a separate sparse checkout of `poofygummy/scalecloud-ios` rather than using the already-checked-out sibling submodule
+- Does **not** use `-sdk iphoneos` explicitly
+- Uploads from `prebuilt/` (submodule root) rather than `ScaleCloudSign/prebuilt/`
+
+It differs substantially from the upstream AltSign `create-release.yml` (which used `unsignedapps/swift-create-xcframework@v2`, created a GitHub Release, posted to Discord, etc.). The entire body was replaced.
+
+**If building locally**: strip OpenSSL signatures first, then run the `xcodebuild build` command with `FRAMEWORK_SEARCH_PATHS` pointing at `Dependencies/` and a checked-out `ScaleCloudKit/prebuilt/`. Then manually assemble `Modules/` and `Headers/` as the workflow does.
 
 ---
 
