@@ -49,7 +49,7 @@ NS_ASSUME_NONNULL_END
     {
         // Configure URLSession with Tailscale proxy (shared with ScaleCloudKit)
         // SCKSession is a Swift struct and is not visible to ObjC; the same static methods
-        // are forwarded through the ObjC-visible ScaleCloudKit class instead.
+        // are forwarded through the ObjC-visible SCKClient class instead.
         NSURLSessionConfiguration *config = [NSURLSessionConfiguration ephemeralSessionConfiguration];
         config.connectionProxyDictionary = [ScaleCloudKit applyProxySettings];
         
