@@ -55,6 +55,7 @@ jobs:
             -derivedDataPath /tmp/DerivedData \
             -clonedSourcePackagesDirPath /tmp/DerivedData/SourcePackages \
             BUILD_LIBRARY_FOR_DISTRIBUTION=YES \
+            PRODUCT_BUNDLE_IDENTIFIER=com.scalecloud.ScaleCloudSign \
             FRAMEWORK_SEARCH_PATHS="$WS/Dependencies $WS/scalecloud-ios/ScaleCloudKit/prebuilt" \
             OTHER_SWIFT_FLAGS="-no-verify-emitted-module-interface"
 
