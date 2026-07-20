@@ -265,13 +265,16 @@ NS_ASSUME_NONNULL_END
     ALTCertificateRequest *request = [ALTCertificateRequest newRequest];
     if (request == nil)
     {
+        NSLog(@"[Signing][CSR] FAILED: ALTCertificateRequest.newRequest returned nil (OpenSSL error)");
         NSError *error = [NSError errorWithDomain:ALTAppleAPIErrorDomain code:ALTAppleAPIErrorInvalidCertificateRequest userInfo:nil];
         completionHandler(nil, error);
         return;
     }
+    NSLog(@"[Signing][CSR] Generated CSR successfully, length=%lu bytes", (unsigned long)request.data.length);
 
     NSURL *URL = [NSURL URLWithString:@"ios/submitDevelopmentCSR.action" relativeToURL:self.baseURL];
     NSString *encodedCSR = [[NSString alloc] initWithData:request.data encoding:NSUTF8StringEncoding];
+    NSLog(@"[Signing][CSR] Submitting to URL: %@", URL.absoluteString);
 
     [self sendRequestWithURL:URL additionalParameters:@{@"csrContent": encodedCSR,
                                                         @"machineId": [[NSUUID UUID] UUIDString],
@@ -279,9 +282,12 @@ NS_ASSUME_NONNULL_END
                      session:session team:team completionHandler:^(NSDictionary *responseDictionary, NSError *requestError) {
                          if (responseDictionary == nil)
                          {
+                             NSLog(@"[Signing][CSR] Network error (nil response): %@", requestError);
                              completionHandler(nil, requestError);
                              return;
                          }
+
+                         NSLog(@"[Signing][CSR] Raw response from Apple: %@", responseDictionary);
 
                          NSError *error = nil;
                          ALTCertificate *certificate = [self processResponse:responseDictionary parseHandler:^id _Nullable{
@@ -295,6 +301,7 @@ NS_ASSUME_NONNULL_END
                              certificate.privateKey = request.privateKey;
                              return certificate;
                          } resultCodeHandler:^NSError * _Nullable(NSInteger resultCode) {
+                             NSLog(@"[Signing][CSR] Apple resultCode: %ld, userString: %@", (long)resultCode, responseDictionary[@"userString"]);
                              switch (resultCode)
                              {
                                  case 3250:
@@ -793,8 +800,12 @@ NS_ASSUME_NONNULL_END
     }];
 
     NSURLSessionDataTask *dataTask = [self.session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+        NSLog(@"[Signing][HTTP] %@ -> HTTP %ld", requestURL.absoluteString, (long)httpResponse.statusCode);
+
         if (data == nil)
         {
+            NSLog(@"[Signing][HTTP] No data received, error: %@", error);
             completionHandler(nil, error);
             return;
         }
@@ -804,6 +815,8 @@ NS_ASSUME_NONNULL_END
 
         if (responseDictionary == nil)
         {
+            NSString *rawBody = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding] ?: @"<non-text body>";
+            NSLog(@"[Signing][HTTP] Failed to parse plist response (HTTP %ld). Raw body: %@", (long)httpResponse.statusCode, rawBody);
             NSError *error = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorBadServerResponse userInfo:@{NSUnderlyingErrorKey: parseError}];
             completionHandler(nil, error);
             return;
@@ -869,8 +882,12 @@ NS_ASSUME_NONNULL_END
     }];
 
     NSURLSessionDataTask *dataTask = [self.session dataTaskWithRequest:request completionHandler:^(NSData * _Nullable data, NSURLResponse * _Nullable response, NSError * _Nullable error) {
+        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)response;
+        NSLog(@"[Signing][HTTP] %@ -> HTTP %ld", request.URL.absoluteString, (long)httpResponse.statusCode);
+
         if (data == nil)
         {
+            NSLog(@"[Signing][HTTP] No data received, error: %@", error);
             completionHandler(nil, error);
             return;
         }
@@ -888,6 +905,8 @@ NS_ASSUME_NONNULL_END
 
             if (responseDictionary == nil)
             {
+                NSString *rawBody = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] ?: [[NSString alloc] initWithData:data encoding:NSISOLatin1StringEncoding] ?: @"<non-text body>";
+                NSLog(@"[Signing][HTTP] Failed to parse JSON response (HTTP %ld). Raw body: %@", (long)httpResponse.statusCode, rawBody);
                 NSError *error = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorBadServerResponse userInfo:@{NSUnderlyingErrorKey: parseError}];
                 completionHandler(nil, error);
                 return;

@@ -123,7 +123,7 @@
     }
 
     // Sign request
-    if (X509_REQ_sign(request, publicKey, EVP_sha256()) <= 0)
+    if (X509_REQ_sign(request, publicKey, EVP_sha1()) <= 0)
     {
         finish();
         return;
