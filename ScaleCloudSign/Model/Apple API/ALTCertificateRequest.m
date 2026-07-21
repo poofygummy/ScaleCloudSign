@@ -44,46 +44,24 @@
 }
 
 // Based on https://www.codepool.biz/how-to-use-openssl-to-generate-x-509-certificate-request.html
+// Updated to use OpenSSL 3.x EVP_PKEY API (RSA_new/RSA_generate_key_ex are removed in 3.x).
 + (void)generateRequest:(NSData **)outputRequest privateKey:(NSData **)outputPrivateKey
 {
-    BIGNUM *bignum = NULL;
-    __block RSA *rsa = NULL;
-
-    X509_REQ *request = NULL;
-    EVP_PKEY *publicKey = NULL;
-
-    BIO *csr = NULL;
-    BIO *privateKey = NULL;
+    __block EVP_PKEY *pkey = NULL;
+    __block X509_REQ *request = NULL;
+    __block BIO *csr = NULL;
+    __block BIO *privateKeyBIO = NULL;
 
     void (^finish)(void) = ^{
-        if (publicKey != NULL)
-        {
-            // Also frees rsa, so we check if non-nil to prevent double free.
-            EVP_PKEY_free(publicKey);
-        }
-        else
-        {
-            RSA_free(rsa);
-        }
-
-        BN_free(bignum);
+        EVP_PKEY_free(pkey);
         X509_REQ_free(request);
-
         BIO_free_all(csr);
-        BIO_free_all(privateKey);
+        BIO_free_all(privateKeyBIO);
     };
 
-    /* Generate RSA Key */
-
-    bignum = BN_new();
-    if (BN_set_word(bignum, RSA_F4) != 1)
-    {
-        finish();
-        return;
-    }
-
-    rsa = RSA_new();
-    if (RSA_generate_key_ex(rsa, 2048, bignum, NULL) != 1)
+    /* Generate RSA 2048 key using OpenSSL 3.x EVP API */
+    pkey = EVP_RSA_gen(2048);
+    if (pkey == NULL)
     {
         finish();
         return;
@@ -113,23 +91,20 @@
     X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (const unsigned char*)commonName, -1, -1, 0);
 
     // Public Key
-    publicKey = EVP_PKEY_new();
-    EVP_PKEY_assign_RSA(publicKey, rsa);
-
-    if (X509_REQ_set_pubkey(request, publicKey) != 1)
+    if (X509_REQ_set_pubkey(request, pkey) != 1)
     {
         finish();
         return;
     }
 
-    // Sign request
-    if (X509_REQ_sign(request, publicKey, EVP_sha1()) <= 0)
+    // Sign request with SHA-1 (required by Apple Developer portal)
+    if (X509_REQ_sign(request, pkey, EVP_sha1()) <= 0)
     {
         finish();
         return;
     }
 
-    // Output
+    // Output CSR in PEM format
     csr = BIO_new(BIO_s_mem());
     if (PEM_write_bio_X509_REQ(csr, request) != 1)
     {
@@ -137,8 +112,9 @@
         return;
     }
 
-    privateKey = BIO_new(BIO_s_mem());
-    if (PEM_write_bio_RSAPrivateKey(privateKey, rsa, NULL, NULL, 0, NULL, NULL) != 1)
+    // Output private key in traditional PKCS#1 PEM format (-----BEGIN RSA PRIVATE KEY-----)
+    privateKeyBIO = BIO_new(BIO_s_mem());
+    if (PEM_write_bio_PrivateKey_traditional(privateKeyBIO, pkey, NULL, NULL, 0, NULL, NULL) != 1)
     {
         finish();
         return;
@@ -151,7 +127,7 @@
     *outputRequest = [NSData dataWithBytes:csrData length:csrLength];
 
     char *privateKeyData = NULL;
-    long privateKeyLength = BIO_get_mem_data(privateKey, &privateKeyData);
+    long privateKeyLength = BIO_get_mem_data(privateKeyBIO, &privateKeyData);
     *outputPrivateKey = [NSData dataWithBytes:privateKeyData length:privateKeyLength];
 
     finish();
