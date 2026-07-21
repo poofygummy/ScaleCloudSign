@@ -7,11 +7,13 @@
 //
 
 #import "ALTCertificateRequest.h"
+#import <ScaleCloudKit/ScaleCloudKit-Swift.h>
 
 #if SWIFT_MODULE
 @import OpenSSL.pem;
 #else
 #include <openssl/pem.h>
+#include <openssl/provider.h>
 #endif
 
 @implementation ALTCertificateRequest
@@ -51,21 +53,36 @@
     __block X509_REQ *request = NULL;
     __block BIO *csr = NULL;
     __block BIO *privateKeyBIO = NULL;
+    __block OSSL_PROVIDER *defaultProvider = NULL;
 
     void (^finish)(void) = ^{
+        if (defaultProvider != NULL) { OSSL_PROVIDER_unload(defaultProvider); }
         EVP_PKEY_free(pkey);
         X509_REQ_free(request);
         BIO_free_all(csr);
         BIO_free_all(privateKeyBIO);
     };
 
+    /* Ensure the default provider is loaded (required in OpenSSL 3.x on iOS
+       where there is no openssl.cnf config file to auto-load providers). */
+    defaultProvider = OSSL_PROVIDER_load(NULL, "default");
+    if (defaultProvider == NULL)
+    {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: OSSL_PROVIDER_load(default) returned NULL"];
+        finish();
+        return;
+    }
+    [SCKClient writeLogDebug:@"[Signing][CSR] Provider loaded OK"];
+
     /* Generate RSA 2048 key using OpenSSL 3.x EVP API */
     pkey = EVP_RSA_gen(2048);
     if (pkey == NULL)
     {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: EVP_RSA_gen(2048) returned NULL"];
         finish();
         return;
     }
+    [SCKClient writeLogDebug:@"[Signing][CSR] EVP_RSA_gen OK"];
 
     /* Generate request */
 
@@ -78,6 +95,7 @@
     request = X509_REQ_new();
     if (X509_REQ_set_version(request, 1) != 1)
     {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_set_version"];
         finish();
         return;
     }
@@ -93,6 +111,7 @@
     // Public Key
     if (X509_REQ_set_pubkey(request, pkey) != 1)
     {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_set_pubkey"];
         finish();
         return;
     }
@@ -100,6 +119,7 @@
     // Sign request with SHA-1 (required by Apple Developer portal)
     if (X509_REQ_sign(request, pkey, EVP_sha1()) <= 0)
     {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_sign"];
         finish();
         return;
     }
@@ -108,6 +128,7 @@
     csr = BIO_new(BIO_s_mem());
     if (PEM_write_bio_X509_REQ(csr, request) != 1)
     {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: PEM_write_bio_X509_REQ"];
         finish();
         return;
     }
@@ -116,6 +137,7 @@
     privateKeyBIO = BIO_new(BIO_s_mem());
     if (PEM_write_bio_PrivateKey_traditional(privateKeyBIO, pkey, NULL, NULL, 0, NULL, NULL) != 1)
     {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: PEM_write_bio_PrivateKey_traditional"];
         finish();
         return;
     }
@@ -130,6 +152,7 @@
     long privateKeyLength = BIO_get_mem_data(privateKeyBIO, &privateKeyData);
     *outputPrivateKey = [NSData dataWithBytes:privateKeyData length:privateKeyLength];
 
+    [SCKClient writeLogDebug:[NSString stringWithFormat:@"[Signing][CSR] Generated CSR successfully, length=%ld bytes", csrLength]];
     finish();
 }
 
