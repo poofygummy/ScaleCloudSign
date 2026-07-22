@@ -14,7 +14,16 @@
 #else
 #include <openssl/pem.h>
 #include <openssl/provider.h>
+#include <openssl/err.h>
 #endif
+
+static NSString *SCKOpenSSLErrorString(void) {
+    unsigned long errCode = ERR_get_error();
+    if (errCode == 0) return @"(no OpenSSL error queued)";
+    char buf[256];
+    ERR_error_string_n(errCode, buf, sizeof(buf));
+    return [NSString stringWithUTF8String:buf];
+}
 
 @implementation ALTCertificateRequest
 
@@ -68,7 +77,7 @@
     defaultProvider = OSSL_PROVIDER_load(NULL, "default");
     if (defaultProvider == NULL)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: OSSL_PROVIDER_load(default) returned NULL"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: OSSL_PROVIDER_load(default) returned NULL — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -78,11 +87,11 @@
     pkey = EVP_RSA_gen(2048);
     if (pkey == NULL)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: EVP_RSA_gen(2048) returned NULL"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: EVP_RSA_gen(2048) returned NULL — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
-    [SCKClient writeLogDebug:@"[Signing][CSR] EVP_RSA_gen OK"];
+    [SCKClient writeLogDebug:[NSString stringWithFormat:@"[Signing][CSR] EVP_RSA_gen OK pkey=%p", (void *)pkey]];
 
     /* Generate request */
 
@@ -95,15 +104,15 @@
     request = X509_REQ_new();
     if (request == NULL)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_new returned NULL"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_REQ_new returned NULL — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
-    [SCKClient writeLogDebug:@"[Signing][CSR] X509_REQ_new OK"];
+    [SCKClient writeLogDebug:[NSString stringWithFormat:@"[Signing][CSR] X509_REQ_new OK request=%p", (void *)request]];
 
     if (X509_REQ_set_version(request, 1) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_set_version"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_REQ_set_version — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -113,14 +122,15 @@
     X509_NAME *subject = X509_REQ_get_subject_name(request);
     if (subject == NULL)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_get_subject_name returned NULL"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_REQ_get_subject_name returned NULL — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
+    [SCKClient writeLogDebug:[NSString stringWithFormat:@"[Signing][CSR] X509_REQ_get_subject_name OK subject=%p", (void *)subject]];
 
     if (X509_NAME_add_entry_by_txt(subject, "C", MBSTRING_ASC, (const unsigned char *)country, -1, -1, 0) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(C)"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(C) — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -128,7 +138,7 @@
 
     if (X509_NAME_add_entry_by_txt(subject, "ST", MBSTRING_ASC, (const unsigned char *)state, -1, -1, 0) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(ST)"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(ST) — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -136,7 +146,7 @@
 
     if (X509_NAME_add_entry_by_txt(subject, "L", MBSTRING_ASC, (const unsigned char *)city, -1, -1, 0) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(L)"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(L) — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -144,7 +154,7 @@
 
     if (X509_NAME_add_entry_by_txt(subject, "O", MBSTRING_ASC, (const unsigned char *)organization, -1, -1, 0) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(O)"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(O) — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -152,7 +162,7 @@
 
     if (X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (const unsigned char *)commonName, -1, -1, 0) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(CN)"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(CN) — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -161,7 +171,7 @@
     // Public Key
     if (X509_REQ_set_pubkey(request, pkey) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_set_pubkey"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_REQ_set_pubkey — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -169,7 +179,7 @@
     // Sign request with SHA-1 (required by Apple Developer portal)
     if (X509_REQ_sign(request, pkey, EVP_sha1()) <= 0)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_sign"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_REQ_sign — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -178,7 +188,7 @@
     csr = BIO_new(BIO_s_mem());
     if (PEM_write_bio_X509_REQ(csr, request) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: PEM_write_bio_X509_REQ"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: PEM_write_bio_X509_REQ — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
@@ -187,7 +197,7 @@
     privateKeyBIO = BIO_new(BIO_s_mem());
     if (PEM_write_bio_PrivateKey_traditional(privateKeyBIO, pkey, NULL, NULL, 0, NULL, NULL) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: PEM_write_bio_PrivateKey_traditional"];
+        [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: PEM_write_bio_PrivateKey_traditional — %@", SCKOpenSSLErrorString()]];
         finish();
         return;
     }
