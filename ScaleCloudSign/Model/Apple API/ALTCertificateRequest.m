@@ -110,7 +110,7 @@ static NSString *SCKOpenSSLErrorString(void) {
     }
     [SCKClient writeLogDebug:[NSString stringWithFormat:@"[Signing][CSR] X509_REQ_new OK request=%p", (void *)request]];
 
-    if (X509_REQ_set_version(request, 1) != 1)
+    if (X509_REQ_set_version(request, 0) != 1)
     {
         [SCKClient writeLogError:[NSString stringWithFormat:@"[Signing][CSR] FAILED: X509_REQ_set_version — %@", SCKOpenSSLErrorString()]];
         finish();
