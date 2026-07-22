@@ -93,20 +93,42 @@
     const char *commonName = "ScaleCloudSign";
 
     request = X509_REQ_new();
+    if (request == NULL)
+    {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_new returned NULL"];
+        finish();
+        return;
+    }
+    [SCKClient writeLogDebug:@"[Signing][CSR] X509_REQ_new OK"];
+
     if (X509_REQ_set_version(request, 1) != 1)
     {
         [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_set_version"];
         finish();
         return;
     }
+    [SCKClient writeLogDebug:@"[Signing][CSR] X509_REQ_set_version OK"];
 
     // Subject
     X509_NAME *subject = X509_REQ_get_subject_name(request);
-    X509_NAME_add_entry_by_txt(subject, "C", MBSTRING_ASC, (const unsigned char *)country, -1, -1, 0);
-    X509_NAME_add_entry_by_txt(subject, "ST", MBSTRING_ASC, (const unsigned char*)state, -1, -1, 0);
-    X509_NAME_add_entry_by_txt(subject, "L", MBSTRING_ASC, (const unsigned char*)city, -1, -1, 0);
-    X509_NAME_add_entry_by_txt(subject, "O", MBSTRING_ASC, (const unsigned char*)organization, -1, -1, 0);
-    X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (const unsigned char*)commonName, -1, -1, 0);
+    if (subject == NULL)
+    {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_REQ_get_subject_name returned NULL"];
+        finish();
+        return;
+    }
+
+    if (X509_NAME_add_entry_by_txt(subject, "C",  MBSTRING_ASC, (const unsigned char *)country,      -1, -1, 0) != 1 ||
+        X509_NAME_add_entry_by_txt(subject, "ST", MBSTRING_ASC, (const unsigned char *)state,        -1, -1, 0) != 1 ||
+        X509_NAME_add_entry_by_txt(subject, "L",  MBSTRING_ASC, (const unsigned char *)city,         -1, -1, 0) != 1 ||
+        X509_NAME_add_entry_by_txt(subject, "O",  MBSTRING_ASC, (const unsigned char *)organization, -1, -1, 0) != 1 ||
+        X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (const unsigned char *)commonName,   -1, -1, 0) != 1)
+    {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt"];
+        finish();
+        return;
+    }
+    [SCKClient writeLogDebug:@"[Signing][CSR] Subject fields OK"];
 
     // Public Key
     if (X509_REQ_set_pubkey(request, pkey) != 1)
