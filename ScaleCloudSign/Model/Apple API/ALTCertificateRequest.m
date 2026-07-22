@@ -95,9 +95,9 @@ static NSString *SCKOpenSSLErrorString(void) {
 
     /* Generate request */
 
-    const char *country = "US";
-    const char *state = "CA";
-    const char *city = "Los Angeles";
+    const char *country = "HU";
+    const char *state = "Budapest";
+    const char *city = "Budapest";
     const char *organization = "ScaleCloudSign";
     const char *commonName = "ScaleCloudSign";
 
