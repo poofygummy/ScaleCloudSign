@@ -118,17 +118,45 @@
         return;
     }
 
-    if (X509_NAME_add_entry_by_txt(subject, "C",  MBSTRING_ASC, (const unsigned char *)country,      -1, -1, 0) != 1 ||
-        X509_NAME_add_entry_by_txt(subject, "ST", MBSTRING_ASC, (const unsigned char *)state,        -1, -1, 0) != 1 ||
-        X509_NAME_add_entry_by_txt(subject, "L",  MBSTRING_ASC, (const unsigned char *)city,         -1, -1, 0) != 1 ||
-        X509_NAME_add_entry_by_txt(subject, "O",  MBSTRING_ASC, (const unsigned char *)organization, -1, -1, 0) != 1 ||
-        X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (const unsigned char *)commonName,   -1, -1, 0) != 1)
+    if (X509_NAME_add_entry_by_txt(subject, "C", MBSTRING_ASC, (const unsigned char *)country, -1, -1, 0) != 1)
     {
-        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt"];
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(C)"];
         finish();
         return;
     }
-    [SCKClient writeLogDebug:@"[Signing][CSR] Subject fields OK"];
+    [SCKClient writeLogDebug:@"[Signing][CSR] Subject field C OK"];
+
+    if (X509_NAME_add_entry_by_txt(subject, "ST", MBSTRING_ASC, (const unsigned char *)state, -1, -1, 0) != 1)
+    {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(ST)"];
+        finish();
+        return;
+    }
+    [SCKClient writeLogDebug:@"[Signing][CSR] Subject field ST OK"];
+
+    if (X509_NAME_add_entry_by_txt(subject, "L", MBSTRING_ASC, (const unsigned char *)city, -1, -1, 0) != 1)
+    {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(L)"];
+        finish();
+        return;
+    }
+    [SCKClient writeLogDebug:@"[Signing][CSR] Subject field L OK"];
+
+    if (X509_NAME_add_entry_by_txt(subject, "O", MBSTRING_ASC, (const unsigned char *)organization, -1, -1, 0) != 1)
+    {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(O)"];
+        finish();
+        return;
+    }
+    [SCKClient writeLogDebug:@"[Signing][CSR] Subject field O OK"];
+
+    if (X509_NAME_add_entry_by_txt(subject, "CN", MBSTRING_ASC, (const unsigned char *)commonName, -1, -1, 0) != 1)
+    {
+        [SCKClient writeLogError:@"[Signing][CSR] FAILED: X509_NAME_add_entry_by_txt(CN)"];
+        finish();
+        return;
+    }
+    [SCKClient writeLogDebug:@"[Signing][CSR] Subject field CN OK"];
 
     // Public Key
     if (X509_REQ_set_pubkey(request, pkey) != 1)
